@@ -9,8 +9,10 @@ set(${PROJECT_NAME}_VERSION_MAJOR 1)
 set(${PROJECT_NAME}_VERSION_MINOR 0)
 set(${PROJECT_NAME}_VERSION_PATCH 0)
 set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-configure_file(KDSoapConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/KDSoapConfig.cmake @ONLY)
+# setup default install locations
+include(InstallLocation)
 
 find_package(Qt4 4.7 QUIET REQUIRED QtCore QtMain QtGui)
 
@@ -65,4 +67,36 @@ if(${PROJECT_NAME}_IS_ROOT_PROJECT)
 	endif()
 	add_subdirectory(examples)
 endif()
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KDSoapConfig.cmake KDSoapMacros.cmake DESTINATION cmake/modules/)
+
+# config files for build tree
+set(KDSoap_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(KDSoap_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
+set(KDSoap_CMAKE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(KDSoap_TARGETS_DIR ${CMAKE_CURRENT_BINARY_DIR})
+configure_file(KDSoapConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/KDSoapConfig.cmake @ONLY)
+configure_file(${KDSoap_CMAKE_DIR}/KDSoapConfigVersion.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/KDSoapConfigVersion.cmake @ONLY)
+
+# config files for install tree
+set(KDSoap_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+set(KDSoap_INCLUDE_DIRS ${KDSoap_INSTALL_PREFIX}/${INSTALL_INCLUDE_DIR})
+set(KDSoap_CMAKE_DIR ${KDSoap_INSTALL_PREFIX}/cmake/modules)
+set(KDSoap_TARGETS_DIR ${KDSoap_CMAKE_DIR})
+configure_file(KDSoapConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/KDSoapConfig.cmake @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/KDSoapConfigVersion.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/KDSoapConfigVersion.cmake @ONLY)
+
+# export targets file in build tree
+export(TARGETS kdsoap kdsoap-server
+  FILE ${CMAKE_CURRENT_BINARY_DIR}/KDSoapTargets.cmake)
+
+install(FILES
+  "${KDSoap_BINARY_DIR}/CMakeFiles/KDSoapConfig.cmake"
+  "${KDSoap_BINARY_DIR}/KDSoapConfigVersion.cmake"
+  "${KDSoap_SOURCE_DIR}/cmake/KDSoapMacros.cmake"
+  DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/kdsoap")
+
+install(EXPORT "KDSoapTargets"
+  DESTINATION "${INSTALL_LIBRARY_DIR}/cmake/kdsoap")
