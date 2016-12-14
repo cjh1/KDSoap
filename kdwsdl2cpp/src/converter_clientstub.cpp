@@ -387,15 +387,11 @@ bool Converter::convertClientService()
 
                 if (soapStyle(binding) == SoapBinding::RPCStyle /*adds a wrapper*/) {
                     // Protect the call to .at(0) below
-                    slotCode += "if (_reply.childValues().isEmpty()) {";
+                    slotCode += "if (!_reply.childValues().isEmpty()) {";
                     slotCode.indent();
-                    slotCode += "_reply.setFault(true);" + COMMENT;
-                    slotCode += "_reply.addArgument(QString::fromLatin1(\"faultcode\"), QString::fromLatin1(\"Server.EmptyResponse\"));";
-                    slotCode += QLatin1String("return;");
+                    slotCode += QLatin1String("_reply = _reply.childValues().at(0);") + COMMENT;
                     slotCode.unindent();
                     slotCode += "}";
-
-                    slotCode += QLatin1String("_reply = _reply.childValues().at(0);") + COMMENT;
                 }
 
                 Q_FOREACH (const Part &part, selectedParts(binding, outputMsg, operation, false /*input*/)) {
