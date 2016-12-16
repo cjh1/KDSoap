@@ -83,6 +83,30 @@ private Q_SLOTS:
 
         QCOMPARE(job->getAllocationInfoReturn(), QString("The response"));
     }
+
+    void testGetStreamingFileUploadURLJob()
+    {
+        // Prepare response
+        QByteArray responseData = QByteArray("<?xml version=\"1.0\" encoding=\"utf-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><soapenv:Body><ns1:getStreamingFileUploadURLResponse soapenv:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:ns1=\"https://www.uit.hpc.mil/UITAPIv3/uitapi.jws\"><getStreamingFileUploadURLReturn xsi:type=\"xsd:string\">https://www.uit.hpc.mil/UITAPIv3/StreamingFileUploadServlet</getStreamingFileUploadURLReturn></ns1:getStreamingFileUploadURLResponse></soapenv:Body></soapenv:Envelope>");
+        HttpServerThread server(responseData, HttpServerThread::Public);
+
+        UitapiService service;
+        service.setEndPoint(server.endPoint());
+
+        GetStreamingFileUploadURLJob *job = new GetStreamingFileUploadURLJob(&service);
+        job->setToken("MyToken");
+
+        QEventLoop loop;
+        QObject::connect(job, SIGNAL(finished(KDSoapJob*)), &loop, SLOT(quit()));
+        job->start();
+        loop.exec();
+
+        qDebug() << job->reply();
+        qDebug() << job->reply().childValues();
+        qDebug() << job->getStreamingFileUploadURLReturn();
+
+    }
+
 };
 
 
